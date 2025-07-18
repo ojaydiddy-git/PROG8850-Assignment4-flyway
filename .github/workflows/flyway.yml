@@ -7,6 +7,7 @@ on:
 jobs:
   migration:
     runs-on: ubuntu-latest
+
     services:
       mysql:
         image: mysql:8
@@ -30,12 +31,13 @@ jobs:
         run: |
           curl -L https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/9.16.3/flyway-commandline-9.16.3-linux-x64.tar.gz | tar xz
           sudo ln -s $PWD/flyway-*/flyway /usr/local/bin/flyway
-      - name: Repair Flyway metadata (to fix checksum/version issues)
+
+      - name: Repair Flyway metadata (initial migrations)
         run: |
           flyway -url="jdbc:mysql://localhost:3306/subscriptions?allowPublicKeyRetrieval=true&useSSL=false" \
-           -user=subuser \
-           -password=subpass \
-           -locations=filesystem:./migrations repair
+                 -user=subuser \
+                 -password=subpass \
+                 -locations=filesystem:./migrations repair
 
       - name: Run initial migrations
         run: |
@@ -43,6 +45,13 @@ jobs:
                  -user=subuser \
                  -password=subpass \
                  -locations=filesystem:./migrations migrate
+
+      - name: Repair Flyway metadata (incremental migrations)
+        run: |
+          flyway -url="jdbc:mysql://localhost:3306/subscriptions?allowPublicKeyRetrieval=true&useSSL=false" \
+                 -user=subuser \
+                 -password=subpass \
+                 -locations=filesystem:./incremental_migrations repair
 
       - name: Run incremental migrations
         run: |
