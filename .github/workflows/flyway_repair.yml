@@ -1,0 +1,46 @@
+name: Flyway Repair
+
+on:
+  workflow_dispatch:
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: subscriptions
+          MYSQL_USER: subuser
+          MYSQL_PASSWORD: subpass
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Flyway CLI
+        run: |
+          curl -L https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/9.16.3/flyway-commandline-9.16.3-linux-x64.tar.gz | tar xz
+          sudo ln -s $PWD/flyway-*/flyway /usr/local/bin/flyway
+
+      - name: Repair initial migrations
+        run: |
+          flyway -url="jdbc:mysql://localhost:3306/subscriptions?allowPublicKeyRetrieval=true&useSSL=false" \
+                 -user=subuser \
+                 -password=subpass \
+                 -locations=filesystem:./migrations repair
+
+      - name: Repair incremental migrations
+        run: |
+          flyway -url="jdbc:mysql://localhost:3306/subscriptions?allowPublicKeyRetrieval=true&useSSL=false" \
+                 -user=subuser \
+                 -password=subpass \
+                 -locations=filesystem:./incremental_migrations repair
