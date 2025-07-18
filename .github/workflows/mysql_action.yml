@@ -30,10 +30,6 @@ jobs:
       - name: Install MySQL client
         run: sudo apt-get update && sudo apt-get install -y mysql-client
 
-      - name: Deploy to Database (optional, can remove if using Flyway only)
-        run: |
-          mysql -h mysql -u subuser -psubpass subscriptions < migrations/V1__init.sql
-
       - name: Pull Flyway image
         run: docker pull redgate/flyway
 
