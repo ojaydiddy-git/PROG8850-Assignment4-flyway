@@ -34,14 +34,14 @@ jobs:
 
       - name: Repair Flyway metadata (initial migrations)
         run: |
-          flyway -url="jdbc:mysql://localhost:3306/mysql?allowPublicKeyRetrieval=true&useSSL=false" \
+          flyway -url="jdbc:mysql://localhost:3306/subscriptions?allowPublicKeyRetrieval=true&useSSL=false" \
                  -user=subuser \
                  -password=subpass \
                  -locations=filesystem:./migrations repair
 
       - name: Run initial migrations
         run: |
-          flyway -url="jdbc:mysql://localhost:3306/mysql?allowPublicKeyRetrieval=true&useSSL=false" \
+          flyway -url="jdbc:mysql://localhost:3306/subscriptions?allowPublicKeyRetrieval=true&useSSL=false" \
                  -user=subuser \
                  -password=subpass \
                  -locations=filesystem:./migrations migrate
