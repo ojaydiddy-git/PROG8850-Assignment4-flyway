@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: subscriptions
+      MYSQL_USER: subuser
+      MYSQL_PASSWORD: subpass
+    ports:
+      - "3306:3306"
+
+  flyway:
+    image: flyway/flyway:latest
+    container_name: flyway
+    depends_on:
+      - mysql
+    command: -url=jdbc:mysql://mysql:3306/subscriptions -user=subuser -password=subpass -locations=filesystem:/flyway/sql migrate
+    volumes:
+      - ./migrations:/flyway/sql

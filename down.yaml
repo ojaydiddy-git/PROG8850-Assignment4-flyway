@@ -1,0 +1,7 @@
+---
+- name: Teardown environment
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Stop and remove Docker containers
+      command: docker-compose down
