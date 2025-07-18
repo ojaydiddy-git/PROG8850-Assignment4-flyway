@@ -1,9 +1,28 @@
 name: Mysql actions demo
 run-name: ${{ github.actor }} is testing out Mysql GitHub Actions 🚀
+
 on: [push]
+
 jobs:
   setup_mysql_database:
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: subscriptions
+          MYSQL_USER: subuser
+          MYSQL_PASSWORD: subpass
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -11,19 +30,22 @@ jobs:
       - name: Install MySQL client
         run: sudo apt-get update && sudo apt-get install -y mysql-client
 
-      - name: Deploy to Database
-        env:
-          DB_HOST: ${{ secrets.DB_HOST || '127.0.0.1' }} 
-          DB_USER: ${{ secrets.DB_ADMIN_USER || 'root' }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD  || 'Secret5555'}}
-          DB_NAME: ${{ secrets.DB_NAME || 'mysql' }}
-        run: mysql -h $DB_HOST -u $DB_USER -p$DB_PASSWORD $DB_NAME < schema_changes.sql
-      - name: pull flyway
+      - name: Deploy to Database (optional, can remove if using Flyway only)
+        run: |
+          mysql -h mysql -u subuser -psubpass subscriptions < migrations/V1__init.sql
+
+      - name: Pull Flyway image
         run: docker pull redgate/flyway
-      - name: Run migrations
+
+      - name: Run Flyway Migrations
         env:
-          DB_HOST: ${{ secrets.DB_HOST || '172.17.0.1' }} 
-          DB_USER: ${{ secrets.DB_ADMIN_USER || 'root' }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD  || 'Secret5555'}}
-          REPO_NAME: ${{ github.event.repository.name || 'PROG8850flyway'}}
-        run: docker run --rm -v "/workspaces/$REPO_NAME/migrations:/flyway/sql" redgate/flyway -user=$DB_USER -password=$DB_PASSWORD -url=jdbc:mysql://$DB_HOST:3306/flyway_test migrate
+          DB_USER: subuser
+          DB_PASSWORD: subpass
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/migrations:/flyway/sql \
+            redgate/flyway \
+            -user=$DB_USER \
+            -password=$DB_PASSWORD \
+            -url=jdbc:mysql://mysql:3306/subscriptions \
+            migrate
