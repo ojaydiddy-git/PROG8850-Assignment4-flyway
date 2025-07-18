@@ -59,3 +59,4 @@ jobs:
                  -user=subuser \
                  -password=subpass \
                  -locations=filesystem:./incremental_migrations migrate
+##
