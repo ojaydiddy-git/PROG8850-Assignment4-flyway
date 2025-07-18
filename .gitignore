@@ -174,3 +174,5 @@ cython_debug/
 .pypirc
 
 binflyway.tar.gz
+flyway.tar.gz
+flyway-9.16.3/
