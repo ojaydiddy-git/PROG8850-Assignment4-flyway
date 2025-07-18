@@ -34,14 +34,14 @@ jobs:
 
       - name: Run initial migrations
         run: |
-          flyway -url=jdbc:mysql://localhost:3306/subscriptions \
+          flyway -url="jdbc:mysql://localhost:3306/subscriptions?allowPublicKeyRetrieval=true&useSSL=false" \
                  -user=subuser \
                  -password=subpass \
                  -locations=filesystem:./migrations migrate
 
       - name: Run incremental migrations
         run: |
-          flyway -url=jdbc:mysql://localhost:3306/subscriptions \
+          flyway -url="jdbc:mysql://localhost:3306/subscriptions?allowPublicKeyRetrieval=true&useSSL=false" \
                  -user=subuser \
                  -password=subpass \
                  -locations=filesystem:./incremental_migrations migrate
