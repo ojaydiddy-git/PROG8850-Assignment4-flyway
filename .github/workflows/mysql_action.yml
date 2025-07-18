@@ -27,21 +27,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install MySQL client
-        run: sudo apt-get update && sudo apt-get install -y mysql-client
-
-      - name: Pull Flyway image
-        run: docker pull redgate/flyway
-
-      - name: Run Flyway Migrations
-        env:
-          DB_USER: subuser
-          DB_PASSWORD: subpass
+      - name: Install Flyway CLI
         run: |
-          docker run --rm \
-            -v ${{ github.workspace }}/migrations:/flyway/sql \
-            redgate/flyway \
-            -user=$DB_USER \
-            -password=$DB_PASSWORD \
-            -url=jdbc:mysql://mysql:3306/subscriptions \
-            migrate
+          curl -L https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/9.16.3/flyway-commandline-9.16.3-linux-x64.tar.gz | tar xz
+          sudo ln -s $PWD/flyway-*/flyway /usr/local/bin/flyway
+
+      - name: Run initial migrations
+        run: |
+          flyway -url=jdbc:mysql://localhost:3306/subscriptions \
+                 -user=subuser \
+                 -password=subpass \
+                 -locations=filesystem:./migrations migrate
+
+      - name: Run incremental migrations
+        run: |
+          flyway -url=jdbc:mysql://localhost:3306/subscriptions \
+                 -user=subuser \
+                 -password=subpass \
+                 -locations=filesystem:./incremental_migrations migrate
